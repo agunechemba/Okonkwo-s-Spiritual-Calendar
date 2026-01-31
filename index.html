@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root { --power-purple: #6a1b9a; --text-gold: #ffd700; --bg-dark: #121212; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: white; margin: 20px; }
+        .calendar-wrapper { display: flex; justify-content: center; gap: 20px; overflow-x: auto; padding: 20px; }
+        
+        .month-container { background: #1e1e1e; padding: 15px; width: 280px; border-radius: 12px; border: 1px solid #333; }
+        .month-container.secondary { opacity: 0.6; transform: scale(0.95); }
+        
+        h3 { color: var(--text-gold); text-align: center; margin-bottom: 15px; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .day { padding: 10px 2px; border-radius: 6px; background: #2a2a2a; font-size: 11px; text-align: center; border: 1px solid transparent; }
+        .day-name { font-size: 10px; color: #ffd700; padding-bottom: 8px; font-weight: bold; }
+        
+        .market-label { display: block; font-size: 8px; font-weight: 800; margin-top: 4px; color: #888; }
+        
+        /* NKWỌ - Your Anchor & Power Day */
+        .power-day { background: var(--power-purple) !important; border: 1px solid #9c27b0; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .power-day .market-label { color: #e1bee7; }
+        .power-day { color: white; font-weight: bold; }
+        
+        .today { border: 2px solid var(--text-gold) !important; }
+        .legend { text-align: center; margin-top: 20px; font-size: 0.9rem; color: #aaa; background: #1e1e1e; display: inline-block; padding: 10px 20px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1 style="text-align:center; color:var(--text-gold); margin-bottom: 5px;">Okonkwo’s Spiritual Calendar</h1>
+    <p style="text-align:center; color:#888; font-size: 0.8rem; margin-bottom: 20px;">Reference Anchor: July 28, 1991 = NKWỌ</p>
+
+    <div class="calendar-wrapper" id="calendarWrapper"></div>
+
+    <div style="text-align:center;">
+        <div class="legend">
+            <span style="color:var(--power-purple)">●</span> Your Power Day (Nkwọ) | 
+            <span style="color:var(--text-gold)">▢</span> Today's Date
+        </div>
+    </div>
+
+<script>
+    // THE ANCHOR: Your Birthday as Nkwọ
+    const birthDate = new Date(1991, 6, 28); // July 28, 1991
+    const marketCycle = ["Eke", "Orie", "Afọ", "Nkwọ"];
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const today = new Date();
+
+    function getMarketDay(targetDate) {
+        // Calculate total days difference from your birth anchor
+        const timeDiff = targetDate.getTime() - birthDate.getTime();
+        const diffDays = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        
+        // Since July 28, 1991 is NKWO (index 3), we use modulo 4
+        // Adding a large multiple of 4 to handle dates before 1991 if needed
+        let index = (3 + (diffDays % 4) + 4) % 4;
+        return marketCycle[index];
+    }
+
+    function createMonth(dateOffset) {
+        const targetMonthDate = new Date(today.getFullYear(), today.getMonth() + dateOffset, 1);
+        const month = targetMonthDate.getMonth();
+        const year = targetMonthDate.getFullYear();
+        
+        const container = document.createElement('div');
+        container.className = `month-container ${dateOffset !== 0 ? 'secondary' : ''}`;
+        
+        const title = document.createElement('h3');
+        title.innerText = targetMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+        container.appendChild(title);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+
+        dayNames.forEach(name => {
+            const dName = document.createElement('div');
+            dName.className = 'day-name';
+            dName.innerText = name;
+            grid.appendChild(dName);
+        });
+
+        const firstDayIdx = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDayIdx; i++) grid.appendChild(document.createElement('div'));
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const current = new Date(year, month, d);
+            const market = getMarketDay(current);
+            
+            // Precise 'Today' check ignoring hours
+            const isToday = current.toDateString() === today.toDateString() ? 'today' : '';
+            const isPowerDay = market === "Nkwọ" ? 'power-day' : '';
+            
+            const dayEl = document.createElement('div');
+            dayEl.className = `day ${isToday} ${isPowerDay}`;
+            dayEl.innerHTML = `${d}<span class="market-label">${market}</span>`;
+            grid.appendChild(dayEl);
+        }
+        
+        container.appendChild(grid);
+        return container;
+    }
+
+    const wrapper = document.getElementById('calendarWrapper');
+    wrapper.appendChild(createMonth(-1)); // Previous Month
+    wrapper.appendChild(createMonth(0));  // Current Month
+    wrapper.appendChild(createMonth(1));  // Next Month
+</script>
+</body>
+</html>
